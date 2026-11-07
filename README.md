@@ -11,16 +11,16 @@ Step 2 : Data Preparation :- Pratham
 
 Step 3 : Exploratory Data Analysis (EDA) : - Pratham and Nishant
 
-Phase 1: Data Inspection & Quality (STATS)
+Phase 1: Data Inspection & Quality (STATS) -  Nishant 
 Inspect dataset shape, columns, data types, missing values, duplicate records, zero values and is_batting / is_bowling indicators.
 
-Phase 2: Statistical & Pattern Analysis (STATS) 
+Phase 2: Statistical & Pattern Analysis (STATS) - Pratham 
 Generate descriptive statistics (mean, median, standard deviation, min, max). Analyse feature distributions and identify patterns, unusual values and relationships between batting and bowling performance.
 
-Phase 3: Univariate Data Visualisation (Data Visualisation)
+Phase 3: Univariate Data Visualisation (Data Visualisation) - Nishant 
 Create histograms, density plots and boxplots to understand individual feature distributions, identify skewness and detect outliers in batting and bowling statistics.
 
-Phase 4: Multivariate Visualisation (Data visualisation)  - 
+Phase 4: Multivariate Visualisation (Data visualisation)  - Pratham 
 Create scatterplots, pair plots and correlation heatmaps. Analyse relationships between features and compare batting and bowling performance across Opening, Mid, Death and Overall phases.
 
 

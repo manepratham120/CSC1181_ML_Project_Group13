@@ -1,13 +1,10 @@
-
 import pandas as pd
 
 df = pd.read_csv("ball_by_ball.csv")
 
-overall = df.copy()
-overall["phase"] = "Overall"
-d = pd.concat([df, overall], ignore_index=True)
+d = df.copy()
 
-# ---------- 2. Batting columns ----------
+# ---------- 1. Batting columns ----------
 legal = d[d["is_legal_ball"]]
 
 bat = legal.groupby(["batter", "phase"]).agg(
@@ -28,23 +25,15 @@ phase_sr = legal.groupby("phase").apply(
     include_groups=False
 )
 
-bat["bat_runs_above_avg"] = (
-    bat.bat_runs - bat.bat_balls * bat.phase.map(phase_sr)
-)
 
 
-# ---------- 3. Bowling columns ----------
+
+# ---------- 2. Bowling columns ----------
 bowl = d.groupby(["bowler", "phase"]).agg(
     bowl_balls=("is_legal_ball", "sum"),
     bowl_runs=("runs_conceded", "sum"),
     bowl_wkts=("bowler_wicket", "sum"),
 ).reset_index().rename(columns={"bowler": "player"})
-
-bowl["bowl_overs"] = (
-    (bowl.bowl_balls // 6).astype(str)
-    + "."
-    + (bowl.bowl_balls % 6).astype(str)
-)
 
 bowl["bowl_avg"] = (
     bowl.bowl_runs / bowl.bowl_wkts.where(bowl.bowl_wkts > 0)
@@ -53,7 +42,7 @@ bowl["bowl_avg"] = (
 bowl["bowl_economy"] = bowl.bowl_runs / bowl.bowl_balls * 6
 
 
-# ---------- 4. 4-wicket and 5-wicket hauls ----------
+# ---------- 3. 4-wicket and 5-wicket hauls ----------
 per_match = d.groupby(
     ["bowler", "phase", "match_id"]
 ).bowler_wicket.sum().reset_index()
@@ -66,18 +55,7 @@ hauls = per_match.groupby(["bowler", "phase"]).agg(
 bowl = bowl.merge(hauls, on=["player", "phase"], how="left")
 
 
-# ---------- 5. Runs saved ----------
-phase_rpb = d.groupby("phase").apply(
-    lambda g: g.runs_conceded.sum() / g.is_legal_ball.sum(),
-    include_groups=False
-)
-
-bowl["bowl_runs_saved"] = (
-    bowl.bowl_balls * bowl.phase.map(phase_rpb) - bowl.bowl_runs
-)
-
-
-# ---------- 6. Matches played ----------
+# ---------- 4. Matches played ----------
 a = d[["batter", "phase", "match_id"]].rename(
     columns={"batter": "player"}
 )
@@ -96,7 +74,7 @@ matches = (
 )
 
 
-# ---------- 7. Merge everything ----------
+# ---------- 5. Merge everything ----------
 out = matches.merge(
     bat, on=["player", "phase"], how="left"
 ).merge(
@@ -104,39 +82,32 @@ out = matches.merge(
 )
 
 
-# ---------- 8. Fill missing count columns ----------
+# ---------- 6. Fill missing count columns ----------
 count_cols = [
     "bat_innings", "bat_balls", "bat_runs", "bat_outs",
-    "bat_4s", "bat_6s", "bat_runs_above_avg",
+    "bat_4s", "bat_6s", 
     "bowl_balls", "bowl_runs", "bowl_wkts",
-    "bowl_4fers", "bowl_5fers", "bowl_runs_saved"
+    "bowl_4fers", "bowl_5fers"
 ]
 
 out[count_cols] = out[count_cols].fillna(0)
 
-out["bowl_overs"] = out["bowl_overs"].fillna("0.0")
 
-
-# ---------- 9. Add is_batting and is_bowling ----------
-
-
-
-# ---------- 10. Arrange final columns ----------
+# ---------- 7. Arrange final columns ----------
 order = [
     "player", "phase", "matches",
     "bat_innings", "bat_balls", "bat_runs", "bat_outs",
     "bat_avg", "bat_sr", "bat_4s", "bat_6s",
-    "bat_runs_above_avg",
-    "bowl_overs", "bowl_balls", "bowl_wkts",
+    "bowl_balls", "bowl_wkts",
     "bowl_avg", "bowl_runs", "bowl_economy",
-    "bowl_4fers", "bowl_5fers", "bowl_runs_saved"
+    "bowl_4fers", "bowl_5fers"
 ]
 
 out = out[order]
 
 out["phase"] = pd.Categorical(
     out["phase"],
-    ["Opening", "Mid", "Death", "Overall"]
+    ["Opening", "Mid", "Death"]
 )
 
 out = out.sort_values(["player", "phase"])
